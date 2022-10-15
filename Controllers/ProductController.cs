@@ -1,5 +1,7 @@
 using MangoWeb.Models;
 using MangoWeb.Services.IServices;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -17,7 +19,8 @@ public class ProductController : Controller
     public async Task<IActionResult> ProductIndex()
     {
         List<ProductDto> products = new();
-        var response = await _productService.GetAllProductsAsync<ResponseDto>();
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _productService.GetAllProductsAsync<ResponseDto>(accessToken);
         if (response != null && response.IsSuccess)
         {
             products = JsonConvert.DeserializeObject<List<ProductDto>>(Convert.ToString(response.Result));
@@ -36,7 +39,8 @@ public class ProductController : Controller
     {
         if (ModelState.IsValid)
         {
-            var response = await _productService.CreateProductAsync<ResponseDto>(product);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.CreateProductAsync<ResponseDto>(product, accessToken);
             if (response != null && response.IsSuccess)
             {
                 return RedirectToAction(nameof(ProductIndex));
@@ -47,7 +51,8 @@ public class ProductController : Controller
 
     public async Task<IActionResult> ProductEdit(int productId)
     {
-        var response = await _productService.GetproductByIdAsync<ResponseDto>(productId);
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _productService.GetproductByIdAsync<ResponseDto>(productId, accessToken);
         if (response != null && response.IsSuccess)
         {
             var product = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
@@ -62,7 +67,8 @@ public class ProductController : Controller
     {
         if (ModelState.IsValid)
         {
-            var response = await _productService.UpdateProductAsync<ResponseDto>(product);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.UpdateProductAsync<ResponseDto>(product, accessToken);
             if (response != null && response.IsSuccess)
             {
                 return RedirectToAction(nameof(ProductIndex));
@@ -71,9 +77,11 @@ public class ProductController : Controller
         return View(product);
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ProductDelete(int productId)
     {
-        var response = await _productService.GetproductByIdAsync<ResponseDto>(productId);
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _productService.GetproductByIdAsync<ResponseDto>(productId, accessToken);
         if (response != null && response.IsSuccess)
         {
             var product = JsonConvert.DeserializeObject<ProductDto>(Convert.ToString(response.Result));
@@ -84,11 +92,13 @@ public class ProductController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ProductDelete(ProductDto product)
     {
         if (ModelState.IsValid)
         {
-            var response = await _productService.DeleteProductAsync<ResponseDto>(product.Id);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _productService.DeleteProductAsync<ResponseDto>(product.Id, accessToken);
             if (response.IsSuccess)
             {
                 return RedirectToAction(nameof(ProductIndex));

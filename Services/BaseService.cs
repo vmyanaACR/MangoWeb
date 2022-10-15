@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using MangoWeb.Models;
 using MangoWeb.Services.IServices;
@@ -30,6 +31,13 @@ public class BaseService : IBaseService
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.Data), 
                     Encoding.UTF8, "application/json");
             }
+
+            if (!string.IsNullOrEmpty(apiRequest.AccessToken))
+            {
+                clinet.DefaultRequestHeaders.Authorization = 
+                    new AuthenticationHeaderValue("Bearer", apiRequest.AccessToken);
+            }
+
             HttpResponseMessage response = null;
             switch(apiRequest.ApiType)
             {
