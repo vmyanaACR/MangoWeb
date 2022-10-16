@@ -98,7 +98,7 @@ public class ProductController : Controller
         if (ModelState.IsValid)
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var response = await _productService.DeleteProductAsync<ResponseDto>(product.Id, accessToken);
+            var response = await _productService.DeleteProductAsync<ResponseDto>(product.ProductId, accessToken);
             if (response.IsSuccess)
             {
                 return RedirectToAction(nameof(ProductIndex));
